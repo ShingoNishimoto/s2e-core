@@ -35,6 +35,9 @@ DEFINE_PHYSICAL_CONSTANT(earth_polar_radius_m, 6356752.0L)                     /
 DEFINE_PHYSICAL_CONSTANT(earth_gravitational_constant_m3_s2, 3.986004415e14L)  //!< Best estimate of the Earth's gravitational constants, TT [m3/s2]
 DEFINE_PHYSICAL_CONSTANT(earth_mean_angular_velocity_rad_s, 7.292115e-5L)      //!< Best estimate of the Earth's mean angular velocity, TT [rad/s]
 DEFINE_PHYSICAL_CONSTANT(earth_flattening, 3.352797e-3L)                       //!< The Earth flattening calculated from the earth radius above
+
+DEFINE_PHYSICAL_CONSTANT(lunar_periods_s, 27.321662 * 24 * 3600)               //!< Lunar Sidereal month [sec] (https://en.wikipedia.org/wiki/Orbit_of_the_Moon)
+DEFINE_PHYSICAL_CONSTANT(lunar_mean_angular_velocity_rad_s, 2.66269e-6L)       //!< Lunar mean angular velocity [rad/s]
 }  // namespace astronomy
 
 #undef DEFINE_PHYSICAL_CONSTANT

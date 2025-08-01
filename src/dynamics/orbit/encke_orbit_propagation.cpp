@@ -107,7 +107,7 @@ void EnckeOrbitPropagation::UpdateSatOrbit() {
   spacecraft_position_i_m_ = reference_position_i_m_ + difference_position_i_m_;
   spacecraft_velocity_i_m_s_ = reference_velocity_i_m_s_ + difference_velocity_i_m_s_;
 
-  TransformEciToEcef();
+  TransformIToXcxf();
   TransformEcefToGeodetic();
 }
 

@@ -57,9 +57,9 @@ void GnssReceiver::MainRoutine(const int time_count) {
   CheckAntenna(pos_true_eci_, quaternion_i2b);
 
   if (is_gnss_visible_ == 1) {  // Antenna of GNSS-R can detect GNSS signal
-    position_ecef_m_ = dynamics_->GetOrbit().GetPosition_ecef_m();
+    position_ecef_m_ = dynamics_->GetOrbit().GetPosition_xcxf_m();
     position_llh_ = dynamics_->GetOrbit().GetLatLonAlt();
-    velocity_ecef_m_s_ = dynamics_->GetOrbit().GetVelocity_ecef_m_s();
+    velocity_ecef_m_s_ = dynamics_->GetOrbit().GetVelocity_xcxf_m_s();
     AddNoise(pos_true_eci_, position_ecef_m_);
 
     utc_ = simulation_time_->GetCurrentUtc();

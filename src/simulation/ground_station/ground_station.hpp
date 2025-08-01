@@ -69,10 +69,10 @@ class GroundStation : public ILoggable {
    */
   GeodeticPosition GetGeodeticPosition() const { return geodetic_position_; }
   /**
-   * @fn GetPosition_ecef_m
+   * @fn GetPosition_xcxf_m
    * @brief Return ground station position in the ECEF frame [m]
    */
-  Vector<3> GetPosition_ecef_m() const { return position_ecef_m_; }
+  Vector<3> GetPosition_xcxf_m() const { return position_ecef_m_; }
   /**
    * @fn GetPosition_i_m
    * @brief Return ground station position in the inertial frame [m]

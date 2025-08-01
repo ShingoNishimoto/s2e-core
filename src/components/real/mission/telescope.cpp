@@ -58,7 +58,7 @@ Telescope::Telescope(ClockGenerator* clock_generator, const libra::Quaternion& q
   }
   // Get initial spacecraft position in ECEF
   if (orbit_ != nullptr) {
-    libra::Vector<3> initial_spacecraft_position_ecef_m = orbit_->GetPosition_ecef_m();
+    libra::Vector<3> initial_spacecraft_position_ecef_m = orbit_->GetPosition_xcxf_m();
     initial_ground_position_ecef_m_ = environment::earth_equatorial_radius_m * initial_spacecraft_position_ecef_m;
     initial_ground_position_ecef_m_ /= (orbit_->GetGeodeticPosition().GetAltitude_m() + environment::earth_equatorial_radius_m);
   }
@@ -174,7 +174,7 @@ void Telescope::ObserveGroundPositionDeviation() {
   }
 
   Quaternion quaternion_i2b = attitude_->GetQuaternion_i2b();
-  libra::Vector<3> spacecraft_position_ecef_m = orbit_->GetPosition_ecef_m();
+  libra::Vector<3> spacecraft_position_ecef_m = orbit_->GetPosition_xcxf_m();
   libra::Vector<3> direction_ecef = (initial_ground_position_ecef_m_ - spacecraft_position_ecef_m).CalcNormalizedVector();
   libra::Matrix<3, 3> dcm_ecef_to_i = local_celestial_information_->GetGlobalInformation().GetEarthRotation().GetDcmJ2000ToEcef().Transpose();
   libra::Vector<3> direction_i = (dcm_ecef_to_i * direction_ecef).CalcNormalizedVector();

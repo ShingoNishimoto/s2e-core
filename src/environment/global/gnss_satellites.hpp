@@ -153,11 +153,11 @@ class GnssSatellitePosition : public GnssSatelliteBase {
   void Update(const double current_unix_time);
 
   /**
-   * @fn GetPosition_ecef_m
+   * @fn GetPosition_xcxf_m
    * @brief Return GNSS satellite position vector in the ECEF frame [m]
    * @param [in] gnss_satellite_id: GNSS satellite ID defined in this class
    */
-  libra::Vector<3> GetPosition_ecef_m(int gnss_satellite_id) const;
+  libra::Vector<3> GetPosition_xcxf_m(int gnss_satellite_id) const;
   /**
    * @fn GetPosition_eci_m
    * @brief Return GNSS satellite position vector in the ECI frame [m]

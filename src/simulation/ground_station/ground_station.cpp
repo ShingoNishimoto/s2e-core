@@ -49,7 +49,7 @@ void GroundStation::Update(const EarthRotation& celestial_rotation, const Spacec
   libra::Matrix<3, 3> dcm_ecef2eci = celestial_rotation.GetDcmJ2000ToEcef().Transpose();
   position_i_m_ = dcm_ecef2eci * position_ecef_m_;
 
-  is_visible_[spacecraft.GetSpacecraftId()] = CalcIsVisible(spacecraft.GetDynamics().GetOrbit().GetPosition_ecef_m());
+  is_visible_[spacecraft.GetSpacecraftId()] = CalcIsVisible(spacecraft.GetDynamics().GetOrbit().GetPosition_xcxf_m());
 }
 
 bool GroundStation::CalcIsVisible(const libra::Vector<3> spacecraft_position_ecef_m) {

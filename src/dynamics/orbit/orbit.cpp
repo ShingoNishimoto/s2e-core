@@ -28,26 +28,40 @@ libra::Quaternion Orbit::CalcQuaternion_i2lvlh() const {
   return q_i2lvlh.Normalize();
 }
 
-void Orbit::TransformEciToEcef(void) {
-  libra::Matrix<3, 3> dcm_i_to_xcxf = celestial_information_->GetEarthRotation().GetDcmJ2000ToEcef();
-  spacecraft_position_ecef_m_ = dcm_i_to_xcxf * spacecraft_position_i_m_;
+// NOTE: Currently Earth and Moon rotation exists.
+void Orbit::TransformIToXcxf(void) {
+  std::string center_body_name = celestial_information_->GetCenterBodyName();
 
-  // convert velocity vector in ECI to the vector in ECEF
-  libra::Vector<3> earth_angular_velocity_i_rad_s{0.0};
-  earth_angular_velocity_i_rad_s[2] = environment::earth_mean_angular_velocity_rad_s;
-  libra::Vector<3> we_cross_r = OuterProduct(earth_angular_velocity_i_rad_s, spacecraft_position_i_m_);
-  libra::Vector<3> velocity_we_cross_r = spacecraft_velocity_i_m_s_ - we_cross_r;
-  spacecraft_velocity_ecef_m_s_ = dcm_i_to_xcxf * velocity_we_cross_r;
+  libra::Matrix<3, 3> dcm_i_to_xcxf;
+  libra::Vector<3> celestial_body_angular_velocity_i_rad_s{0.0};
+  if (center_body_name == "EARTH") {
+    dcm_i_to_xcxf = celestial_information_->GetEarthRotation().GetDcmJ2000ToEcef();
+    celestial_body_angular_velocity_i_rad_s[2] = environment::earth_mean_angular_velocity_rad_s;
+  }
+  else if (center_body_name == "MOON") {
+    dcm_i_to_xcxf = celestial_information_->GetMoonRotation().GetDcmJ2000ToMcmf();
+    celestial_body_angular_velocity_i_rad_s[2] = environment::lunar_mean_angular_velocity_rad_s;
+  }
+  else {
+    // TODO: implement others, or force to Earth.
+  }
+  spacecraft_position_xcxf_m_ = dcm_i_to_xcxf * spacecraft_position_i_m_;
+
+  // convert velocity vector in Inertial frame to the vector in XCXF
+  libra::Vector<3> we_cross_r = OuterProduct(celestial_body_angular_velocity_i_rad_s, spacecraft_position_i_m_);
+  libra::Vector<3> velocity_w_cross_r = spacecraft_velocity_i_m_s_ - we_cross_r;
+  spacecraft_velocity_xcxf_m_s_ = dcm_i_to_xcxf * velocity_w_cross_r;
 }
 
+// FIXME: This is only for Earth, need to update for other than geodetic.
 void Orbit::TransformEcefToGeodetic(void) {
-  spacecraft_geodetic_position_.UpdateFromEcef(spacecraft_position_ecef_m_);
+  spacecraft_geodetic_position_.UpdateFromEcef(spacecraft_position_xcxf_m_);
   // Check altitude
-  if (spacecraft_geodetic_position_.GetAltitude_m() < 0.0) {
-    std::cout << "[Error Orbit]: The spacecraft altitude is smaller than zero." << std::endl;
-    std::cout << "               The orbit or disturbance setting may have something wrong." << std::endl;
-    std::exit(1);
-  }
+  // if (spacecraft_geodetic_position_.GetAltitude_m() < 0.0) {
+  //   std::cout << "[Error Orbit]: The spacecraft altitude is smaller than zero." << std::endl;
+  //   std::cout << "               The orbit or disturbance setting may have something wrong." << std::endl;
+  //   std::exit(1);
+  // }
 }
 
 OrbitInitializeMode SetOrbitInitializeMode(const std::string initialize_mode) {

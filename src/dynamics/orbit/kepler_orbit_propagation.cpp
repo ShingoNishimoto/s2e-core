@@ -29,6 +29,6 @@ void KeplerOrbitPropagation::UpdateState(const double current_time_jd) {
   CalcOrbit(current_time_jd);
   spacecraft_position_i_m_ = position_i_m_;
   spacecraft_velocity_i_m_s_ = velocity_i_m_s_;
-  TransformEciToEcef();
+  TransformIToXcxf();
   TransformEcefToGeodetic();
 }

@@ -101,6 +101,7 @@ CelestialInformation::~CelestialInformation() {
   delete[] celestial_body_planetographic_radii_m_;
   delete[] selected_body_ids_;
   delete earth_rotation_;
+  delete moon_rotation_;
 }
 
 void CelestialInformation::UpdateAllObjectsInformation(const SimulationTime& simulation_time) {

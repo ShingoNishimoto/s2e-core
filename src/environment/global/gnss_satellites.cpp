@@ -505,7 +505,7 @@ void GnssSatellitePosition::Update(const double current_unix_time) {
   }
 }
 
-libra::Vector<3> GnssSatellitePosition::GetPosition_ecef_m(int gnss_satellite_id) const {
+libra::Vector<3> GnssSatellitePosition::GetPosition_xcxf_m(int gnss_satellite_id) const {
   if (gnss_satellite_id >= all_sat_num_) return libra::Vector<3>(0.0);
   return position_ecef_m_.at(gnss_satellite_id);
 }
@@ -837,7 +837,7 @@ bool GnssSatelliteInformation::GetWhetherValid(int gnss_satellite_id) const {
 }
 
 libra::Vector<3> GnssSatelliteInformation::GetSatellitePositionEcef(int gnss_satellite_id) const {
-  return position_.GetPosition_ecef_m(gnss_satellite_id);
+  return position_.GetPosition_xcxf_m(gnss_satellite_id);
 }
 
 libra::Vector<3> GnssSatelliteInformation::GetSatellitePositionEci(int gnss_satellite_id) const {

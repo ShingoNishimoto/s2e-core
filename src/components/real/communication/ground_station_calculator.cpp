@@ -83,7 +83,7 @@ double GroundStationCalculator::CalcCn0OnGs(const Dynamics& dynamics, const Ante
   double phi_on_sc_antenna_rad = atan2(gs_direction_on_sc_frame[1], gs_direction_on_sc_frame[0]);
 
   // SC direction on GS RX antenna frame
-  Vector<3> gs_to_sc_ecef = dynamics.GetOrbit().GetPosition_ecef_m() - ground_station.GetPosition_ecef_m();
+  Vector<3> gs_to_sc_ecef = dynamics.GetOrbit().GetPosition_xcxf_m() - ground_station.GetPosition_xcxf_m();
   gs_to_sc_ecef = gs_to_sc_ecef.CalcNormalizedVector();
   Quaternion q_ecef_to_gs_ant = ground_station_rx_antenna.GetQuaternion_b2c() * ground_station.GetGeodeticPosition().GetQuaternionXcxfToLtc();
   Vector<3> sc_direction_on_gs_frame = q_ecef_to_gs_ant.FrameConversion(gs_to_sc_ecef);
