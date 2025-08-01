@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # set variables
-DIR_CSPICE=../../../ßExtLibraries/cspice
-DIR_TMP=./tmp
-URL_CSPICE=https://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_32bit/packages/
+DIR_CSPICE=../../../ExtLibraries/cspice
+DIR_TMP=tmp
+# URL_CSPICE=https://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_32bit/packages/
+URL_CSPICE=https://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacM1_OSX_clang_64bit/packages/
 URL_KERNEL=https://naif.jpl.nasa.gov/pub/naif/generic_kernels/
 
 # make directory
@@ -11,7 +12,7 @@ mkdir -p $DIR_TMP
 mkdir -p $DIR_CSPICE/generic_kernels/lsk
 mkdir -p $DIR_CSPICE/generic_kernels/pck
 mkdir -p $DIR_CSPICE/generic_kernels/spk/planets
-mkdir -p $DIR_CSPICE/cspice_unix/
+mkdir -p $DIR_CSPICE/cspice_apple_silicon64/
 
 # download generic kernels
 curl $URL_KERNEL/lsk/a_old_versions/naif0010.tls > $DIR_CSPICE/generic_kernels/lsk/naif0010.tls
@@ -26,7 +27,7 @@ tar -zxvf $DIR_TMP/cspice.tar.Z -C $DIR_TMP
 
 # move include and lib directory
 cp -r $DIR_TMP/cspice/include $DIR_CSPICE
-cp -r $DIR_TMP/cspice/lib $DIR_CSPICE/cspice_unix/lib
+cp -r $DIR_TMP/cspice/lib $DIR_CSPICE/cspice_apple_silicon64/lib
 
 # delete tmp file
 rm -r $DIR_TMP

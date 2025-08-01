@@ -20,8 +20,8 @@ git clone $URL_NRLMSISE00 src
 # build and make library
 cd src
 # modify compile option to 32bit
-sed -i -e "/CFLAGS/s/-Wall/-m32 -Wall/" ./makefile
+# sed -i -e "/CFLAGS/s/-Wall/-m32 -Wall/" ./makefile
 make
 ar rcs libnrlmsise00.a nrlmsise-00.o nrlmsise-00_data.o
-mv libnrlmsise00.a ../lib/libnrlmsise00.a
+mv libnrlmsise00.a ../lib64/libnrlmsise00.a
 # rm nrlmsise-00.o nrlmsise-00_data.o nrlmsise-00_test.o nrlmsise-test.exe

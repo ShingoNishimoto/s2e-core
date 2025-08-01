@@ -1,4 +1,5 @@
 FROM ubuntu:latest
+# FROM i386/ubuntu:latest
 
 # ssh
 RUN apt-get update &&\
@@ -7,7 +8,7 @@ RUN apt-get update &&\
     sed -ri 's/^PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     echo "root:password" | chpasswd
 # timezone setting
-ENV TZ=Asia/Tokyo
+ENV TZ=Australia/ACT
 
 # Tool
 RUN apt-get update --fix-missing && \
@@ -22,11 +23,17 @@ RUN apt-get update --fix-missing && \
     curl \
     xauth \
     make
+    # apt-utils
 
+# RUN dpkg --add-architecture i386 && \
 RUN apt-get update && \
     apt-get install -y \
-    cmake \
-    gcc-multilib g++-multilib
+    cmake && \
+    # software-properties-common && \
+    # add-apt-repository universe && \
+    # apt update &&\
+    # gcc-multilib g++-multilib
+    apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
 #
 # 一般ユーザ用設定
