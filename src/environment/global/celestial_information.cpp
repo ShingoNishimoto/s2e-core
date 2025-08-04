@@ -139,7 +139,7 @@ int CelestialInformation::CalcBodyIdFromName(const char* body_name) const {
   // Acquisition of ID from body name
   bodn2c_c(body_name, (SpiceInt*)&planet_id, (SpiceBoolean*)&found);
   for (unsigned int i = 0; i < number_of_selected_bodies_; i++) {
-    if (selected_body_ids_[i] == planet_id) {
+    if (selected_body_ids_[i] == static_cast<int>(planet_id)) {
       index = i;
       break;
     }
