@@ -175,6 +175,8 @@ class GnssSatellitePosition : public GnssSatelliteBase {
   // TODO: move to local function?
   std::vector<std::vector<libra::Vector<3>>> ecef_;  //!< Time series of position of all GNSS satellites in the ECEF frame before interpolation [m]
   std::vector<std::vector<libra::Vector<3>>> eci_;   //!< Time series of position of all GNSS satellites in the ECEF frame before interpolation [m]
+
+  const double kJulianDateJ2000_ = 2451545.0;  //!< Julian date of J2000 [day]
 };
 
 /**

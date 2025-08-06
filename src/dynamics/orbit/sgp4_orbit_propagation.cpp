@@ -63,6 +63,7 @@ void Sgp4OrbitPropagation::Propagate(const double end_time_s, const double curre
     spacecraft_velocity_i_m_s_[i] = velocity_i_km_s[i] * 1000.0;
   }
 
-  TransformIToXcxf();
+  TransformIToXcxf(celestial_information_->GetCenterBodyName());
+  TransformIToEcef();
   TransformEcefToGeodetic();
 }

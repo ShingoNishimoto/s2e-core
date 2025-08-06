@@ -192,12 +192,14 @@ class Orbit : public ILoggable {
   OrbitPropagateMode propagate_mode_;  //!< Propagation mode
 
   libra::Vector<3> spacecraft_position_i_m_;       //!< Spacecraft position in the inertial frame [m]
-  libra::Vector<3> spacecraft_position_xcxf_m_;    //!< Spacecraft position in the XCEX frame [m]
+  libra::Vector<3> spacecraft_position_xcxf_m_;    //!< Spacecraft position in the XCXF frame [m]
+  libra::Vector<3> spacecraft_position_ecef_m_;    //!< Spacecraft position in the ECEF frame [m]
   GeodeticPosition spacecraft_geodetic_position_;  //!< Spacecraft position in the Geodetic frame
 
   libra::Vector<3> spacecraft_velocity_i_m_s_;     //!< Spacecraft velocity in the inertial frame [m/s]
   libra::Vector<3> spacecraft_velocity_b_m_s_;     //!< Spacecraft velocity in the body frame [m/s]
   libra::Vector<3> spacecraft_velocity_xcxf_m_s_;  //!< Spacecraft velocity in the XCXF frame [m/s]
+  libra::Vector<3> spacecraft_velocity_ecef_m_s_;  //!< Spacecraft velocity in the ECEF frame [m/s]
 
   libra::Vector<3> spacecraft_acceleration_i_m_s2_;  //!< Spacecraft acceleration in the inertial frame [m/s2]
                                                      //!< NOTE: Clear to zero at the end of the Propagate function
@@ -207,7 +209,13 @@ class Orbit : public ILoggable {
    * @fn TransformIToXcxf
    * @brief Transform states from the Inertial frame to XCXF frame
    */
-  void TransformIToXcxf(void);
+  void TransformIToXcxf(std::string center_body_name);
+  // Frame Conversion TODO: consider other planet
+  /**
+   * @fn TransformIToEcef
+   * @brief Transform states from the Inertial frame to ECEF frame
+   */
+  inline void TransformIToEcef(void) { TransformIToXcxf("EARTH"); };
   /**
    * @fn TransformEcefToGeodetic
    * @brief Transform states from the ECEF frame to the geodetic frame

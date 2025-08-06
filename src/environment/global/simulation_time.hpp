@@ -188,6 +188,11 @@ class SimulationTime : public ILoggable {
    */
   inline double GetCurrentTime_jd(void) const { return current_jd_; };
   /**
+   *@fn GetCurrentTime_jd_from_j2000
+   *@brief Return current Julian day from jd_J2000 [day]
+   */
+  inline double GetCurrentTime_jd_from_j2000(void) const { return current_jd_from_j2000_; };
+  /**
    *@fn GetCurrentSiderealTime
    *@brief Return current sidereal day [day]
    */
@@ -265,6 +270,8 @@ class SimulationTime : public ILoggable {
   double current_decyear_;   //!< Current decimal year [year]
   UTC current_utc_;          //!< UTC calendar day
 
+  double current_jd_from_j2000_;  //!< Current Julian date from jd_j2000 [day] to preserve the accuracy
+
   // Timing controller
   int attitude_update_counter_;   //!< Update counter for attitude calculation
   bool attitude_update_flag_;     //!< Update flag for attitude calculation
@@ -308,6 +315,8 @@ class SimulationTime : public ILoggable {
 
   double simulation_speed_;  //!< The speed of the simulation relative to real time (if negative, real time is not taken into account)
   double time_exceeds_continuously_limit_sec_;  //!< Maximum duration to allow actual step_sec to be larger than specified continuously
+
+  const double kJulianDateJ2000_ = 2451545.0;           //!< Julian date of J2000 [day]
 
   /**
    * @fn InitializeState

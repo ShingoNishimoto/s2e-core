@@ -29,9 +29,7 @@ libra::Quaternion Orbit::CalcQuaternion_i2lvlh() const {
 }
 
 // NOTE: Currently Earth and Moon rotation exists.
-void Orbit::TransformIToXcxf(void) {
-  std::string center_body_name = celestial_information_->GetCenterBodyName();
-
+void Orbit::TransformIToXcxf(std::string center_body_name) {
   libra::Matrix<3, 3> dcm_i_to_xcxf;
   libra::Vector<3> celestial_body_angular_velocity_i_rad_s{0.0};
   if (center_body_name == "EARTH") {
@@ -45,23 +43,40 @@ void Orbit::TransformIToXcxf(void) {
   else {
     // TODO: implement others, or force to Earth.
   }
-  spacecraft_position_xcxf_m_ = dcm_i_to_xcxf * spacecraft_position_i_m_;
+
+  libra::Vector<3> position_i_m = spacecraft_position_i_m_;
+  std::string orbit_center_body_name = celestial_information_->GetCenterBodyName();
+  if (orbit_center_body_name != center_body_name) {
+    position_i_m += celestial_information_->GetPositionFromSelectedBody_i_m(orbit_center_body_name.c_str(), center_body_name.c_str());
+  }
+
+  libra::Vector<3> position_xcxf_m = dcm_i_to_xcxf * position_i_m;
 
   // convert velocity vector in Inertial frame to the vector in XCXF
-  libra::Vector<3> we_cross_r = OuterProduct(celestial_body_angular_velocity_i_rad_s, spacecraft_position_i_m_);
+  libra::Vector<3> we_cross_r = OuterProduct(celestial_body_angular_velocity_i_rad_s, position_i_m);
   libra::Vector<3> velocity_w_cross_r = spacecraft_velocity_i_m_s_ - we_cross_r;
-  spacecraft_velocity_xcxf_m_s_ = dcm_i_to_xcxf * velocity_w_cross_r;
+
+  libra::Vector<3> velocity_xcxf_m_s = dcm_i_to_xcxf * velocity_w_cross_r;
+
+  if (center_body_name == "EARTH") {
+    spacecraft_position_ecef_m_ = position_xcxf_m;
+    spacecraft_velocity_ecef_m_s_ = velocity_xcxf_m_s;
+  }
+  else {
+    spacecraft_position_xcxf_m_ = position_xcxf_m;
+    spacecraft_velocity_xcxf_m_s_= velocity_xcxf_m_s;
+  }
 }
 
 // FIXME: This is only for Earth, need to update for other than geodetic.
 void Orbit::TransformEcefToGeodetic(void) {
-  spacecraft_geodetic_position_.UpdateFromEcef(spacecraft_position_xcxf_m_);
+  spacecraft_geodetic_position_.UpdateFromEcef(spacecraft_position_ecef_m_);
   // Check altitude
-  // if (spacecraft_geodetic_position_.GetAltitude_m() < 0.0) {
-  //   std::cout << "[Error Orbit]: The spacecraft altitude is smaller than zero." << std::endl;
-  //   std::cout << "               The orbit or disturbance setting may have something wrong." << std::endl;
-  //   std::exit(1);
-  // }
+  if (spacecraft_geodetic_position_.GetAltitude_m() < 0.0) {
+    std::cout << "[Error Orbit]: The spacecraft altitude is smaller than zero." << std::endl;
+    std::cout << "               The orbit or disturbance setting may have something wrong." << std::endl;
+    std::exit(1);
+  }
 }
 
 OrbitInitializeMode SetOrbitInitializeMode(const std::string initialize_mode) {
@@ -82,8 +97,10 @@ std::string Orbit::GetLogHeader() const {
   std::string str_tmp = "";
 
   str_tmp += WriteVector("spacecraft_position", "i", "m", 3);
+  str_tmp += WriteVector("spacecraft_position", "ecef", "m", 3);
   str_tmp += WriteVector("spacecraft_velocity", "i", "m/s", 3);
   str_tmp += WriteVector("spacecraft_velocity", "b", "m/s", 3);
+  str_tmp += WriteVector("spacecraft_velocity", "ecef", "m/s", 3);
   str_tmp += WriteVector("spacecraft_acceleration", "i", "m/s2", 3);
   str_tmp += WriteScalar("spacecraft_latitude", "rad");
   str_tmp += WriteScalar("spacecraft_longitude", "rad");
@@ -96,8 +113,10 @@ std::string Orbit::GetLogValue() const {
   std::string str_tmp = "";
 
   str_tmp += WriteVector(spacecraft_position_i_m_, 16);
+  str_tmp += WriteVector(spacecraft_position_ecef_m_, 16);
   str_tmp += WriteVector(spacecraft_velocity_i_m_s_, 10);
   str_tmp += WriteVector(spacecraft_velocity_b_m_s_, 10);
+  str_tmp += WriteVector(spacecraft_velocity_ecef_m_s_, 10);
   str_tmp += WriteVector(spacecraft_acceleration_i_m_s2_, 10);
   str_tmp += WriteScalar(spacecraft_geodetic_position_.GetLatitude_rad());
   str_tmp += WriteScalar(spacecraft_geodetic_position_.GetLongitude_rad());

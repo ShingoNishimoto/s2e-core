@@ -126,7 +126,7 @@ void CelestialInformation::UpdateAllObjectsInformation(const SimulationTime& sim
   }
 
   // Update earth rotation
-  earth_rotation_->Update(simulation_time.GetCurrentTime_jd());
+  earth_rotation_->Update(simulation_time.GetCurrentTime_jd_from_j2000());
   // Update moon rotation
   moon_rotation_->Update(simulation_time);
 }
@@ -167,6 +167,8 @@ std::string CelestialInformation::GetLogHeader() const {
     str_tmp += WriteVector(body_pos, "i", "m", 3);
     str_tmp += WriteVector(body_vel, "i", "m/s", 3);
   }
+
+  str_tmp += earth_rotation_->GetLogHeader();
   return str_tmp;
 }
 
@@ -174,12 +176,14 @@ std::string CelestialInformation::GetLogValue() const {
   std::string str_tmp = "";
   for (unsigned int i = 0; i < number_of_selected_bodies_; i++) {
     for (int j = 0; j < 3; j++) {
-      str_tmp += WriteScalar(celestial_body_position_from_center_i_m_[i * 3 + j]);
+      str_tmp += WriteScalar(celestial_body_position_from_center_i_m_[i * 3 + j], 15);
     }
     for (int j = 0; j < 3; j++) {
-      str_tmp += WriteScalar(celestial_body_velocity_from_center_i_m_s_[i * 3 + j]);
+      str_tmp += WriteScalar(celestial_body_velocity_from_center_i_m_s_[i * 3 + j], 15);
     }
   }
+
+  str_tmp += earth_rotation_->GetLogValue();
   return str_tmp;
 }
 

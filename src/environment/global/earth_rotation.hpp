@@ -9,6 +9,7 @@
 #ifndef S2E_ENVIRONMENT_GLOBAL_EARTH_ROTATION_HPP_
 #define S2E_ENVIRONMENT_GLOBAL_EARTH_ROTATION_HPP_
 
+#include <library/logger/loggable.hpp>
 #include "library/math/matrix.hpp"
 
 /**
@@ -25,7 +26,7 @@ enum class EarthRotationMode {
  * @class EarthRotation
  * @brief Class to calculate the earth rotation
  */
-class EarthRotation {
+class EarthRotation : public ILoggable {
  public:
   /**
    * @fn EarthRotation
@@ -37,9 +38,9 @@ class EarthRotation {
   /**
    * @fn Update
    * @brief Update rotation
-   * @param [in] julian_date: Julian date
+   * @param [in] julian_date_from_j2000: Julian date from J2000
    */
-  void Update(const double julian_date);
+  void Update(const double julian_date_from_j2000);
 
   /**
    * @fn GetDcmJ2000ToEcef
@@ -53,7 +54,19 @@ class EarthRotation {
    */
   inline const libra::Matrix<3, 3> GetDcmTemeToEcef() const { return dcm_teme_to_ecef_; };
 
+  // Override ILoggable
+  /**
+   * @fn GetLogHeader
+   * @brief Override GetLogHeader function of ILoggable
+   */
+  virtual std::string GetLogHeader() const;
+  /**
+   * @fn GetLogValue
+   * @brief Override GetLogValue function of ILoggable
+   */
+  virtual std::string GetLogValue() const;
  private:
+  double gmst_rad_;                        //!< GMST [rad]
   double d_psi_rad_;                       //!< Nutation in obliquity [rad]
   double d_epsilon_rad_;                   //!< Nutation in longitude [rad]
   double epsilon_rad_;                     //!< Mean obliquity of the ecliptic [rad]

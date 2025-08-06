@@ -309,7 +309,7 @@ pair<double, double> GnssSatellitePosition::Initialize(vector<vector<string>>& f
         double jd;
         jday(stoi(s.at(1)), stoi(s.at(2)), stoi(s.at(3)), stoi(s.at(4)), stoi(s.at(5)), stod(s.at(6)), jd);
         // Calculate frame conversion
-        double gs_time_ = gstime(jd);
+        double gs_time_ = gstime(jd - kJulianDateJ2000_);
         cos_ = cos(gs_time_);
         sin_ = sin(gs_time_);
         // Set start and end unix time

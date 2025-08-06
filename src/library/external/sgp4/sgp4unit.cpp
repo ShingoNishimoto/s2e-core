@@ -1731,7 +1731,7 @@ int sgp4(gravconsttype whichconst, elsetrec& satrec, double tsince, double r[3],
  *  author        : david vallado                  719-573-2600    1 mar 2001
  *
  *  inputs          description                    range / units
- *    jdut1       - julian date in ut1             days from 4713 bc
+ *    jdut1       - julian date in ut1             days from j2000. NOTE: Relative time is used to avoid the information loss.
  *
  *  outputs       :
  *    gstime      - greenwich sidereal time        0 to 2pi rad
@@ -1754,7 +1754,7 @@ double gstime(double jdut1) {
   const double deg2rad = pi / 180.0;
   double temp, tut1;
 
-  tut1 = (jdut1 - 2451545.0) / 36525.0;
+  tut1 = jdut1 / 36525.0;
   temp = -6.2e-6 * tut1 * tut1 * tut1 + 0.093104 * tut1 * tut1 + (876600.0 * 3600 + 8640184.812866) * tut1 + 67310.54841;  // sec
   temp = fmod(temp * deg2rad / 240.0, twopi);  // 360/86400 = 1/240, to deg, to rad
 

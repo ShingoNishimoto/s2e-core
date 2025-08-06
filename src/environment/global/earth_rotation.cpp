@@ -109,11 +109,12 @@ void EarthRotation::InitializeParameters() {
   }
 }
 
-void EarthRotation::Update(const double julian_date) {
-  double gmst_rad = gstime(julian_date);  // It is a bit different with 長沢(Nagasawa)'s algorithm. TODO: Check the correctness
+void EarthRotation::Update(const double julian_date_from_j2000) {
+  gmst_rad_ = gstime(julian_date_from_j2000);  // It is a bit different with 長沢(Nagasawa)'s algorithm. TODO: Check the correctness
 
   if (rotation_mode_ == EarthRotationMode::kFull) {
     // Compute Julian date for terrestrial time
+    double julian_date = julian_date_from_j2000 + kJulianDateJ2000_;
     double terrestrial_time_julian_day =
         julian_date + kDtUt1Utc_ * kSec2Day_;  // TODO: Check the correctness. Problem is that S2E doesn't have Gregorian calendar.
 
@@ -135,7 +136,7 @@ void EarthRotation::Update(const double julian_date) {
 
     // Axial Rotation
     double equinox_rad = d_psi_rad_ * cos(epsilon_rad_ + d_epsilon_rad_);  // Equation of equinoxes [rad]
-    double gast_rad = gmst_rad + equinox_rad;                              // Greenwich 'Apparent' Sidereal Time [rad]
+    double gast_rad = gmst_rad_ + equinox_rad;                              // Greenwich 'Apparent' Sidereal Time [rad]
     dcm_rotation = AxialRotation(gast_rad);
     // Polar motion (is not considered so far, even without polar motion, the result agrees well with the matlab reference)
     double x_p = 0.0;
@@ -147,7 +148,7 @@ void EarthRotation::Update(const double julian_date) {
   } else if (rotation_mode_ == EarthRotationMode::kSimple) {
     // In this case, only Axial Rotation is executed, with its argument replaced from G'A'ST to G'M'ST
     // FIXME: Not suitable when the center body is not the earth
-    dcm_j2000_to_ecef_ = AxialRotation(gmst_rad);
+    dcm_j2000_to_ecef_ = AxialRotation(gmst_rad_);
   } else {
     // Leave the DCM as unit Matrix(diag{1,1,1})
     return;
@@ -274,4 +275,20 @@ EarthRotationMode ConvertEarthRotationMode(const std::string mode) {
   }
 
   return rotation_mode;
+}
+
+std::string EarthRotation::GetLogHeader() const {
+  std::string str_tmp = "";
+
+  str_tmp += WriteScalar("gmst", "rad");
+
+  return str_tmp;
+}
+
+std::string EarthRotation::GetLogValue() const {
+  std::string str_tmp = "";
+
+  str_tmp += WriteScalar(gmst_rad_, 15);
+
+  return str_tmp;
 }

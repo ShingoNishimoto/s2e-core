@@ -44,7 +44,8 @@ SimulationTime::SimulationTime(const double end_sec, const double step_sec, cons
   sscanf(start_ymdhms, "%d/%d/%d %d:%d:%lf", &start_year_, &start_month_, &start_day_, &start_hour_, &start_minute_, &start_sec_);
   jday(start_year_, start_month_, start_day_, start_hour_, start_minute_, start_sec_, start_jd_);
   current_jd_ = start_jd_;
-  current_sidereal_ = gstime(current_jd_);
+  current_jd_from_j2000_ = current_jd_ - kJulianDateJ2000_;
+  current_sidereal_ = gstime(current_jd_from_j2000_);
   JdToDecyear(current_jd_, &current_decyear_);
   ConvJDtoCalendarDay(current_jd_);
   AssertTimeStepParams();
@@ -133,8 +134,9 @@ void SimulationTime::UpdateTime(void) {
     state_.finish = true;
   }
 
-  current_jd_ = start_jd_ + elapsed_time_sec_ / (60.0 * 60.0 * 24.0);
-  current_sidereal_ = gstime(current_jd_);
+  current_jd_from_j2000_ = (start_jd_ - kJulianDateJ2000_) + elapsed_time_sec_ / (60.0 * 60.0 * 24.0);
+  current_jd_ = kJulianDateJ2000_ + current_jd_from_j2000_;
+  current_sidereal_ = gstime(current_jd_from_j2000_);
   JdToDecyear(current_jd_, &current_decyear_);
   ConvJDtoCalendarDay(current_jd_);
 
@@ -203,6 +205,7 @@ string SimulationTime::GetLogHeader() const {
   string str_tmp = "";
 
   str_tmp += WriteScalar("elapsed_time", "s");
+  // str_tmp += WriteScalar("jd", "date");
   str_tmp += WriteScalar("time", "UTC");
 
   return str_tmp;
@@ -212,6 +215,7 @@ string SimulationTime::GetLogValue() const {
   string str_tmp = "";
 
   str_tmp += WriteScalar(elapsed_time_sec_);
+  // str_tmp += WriteScalar(current_jd_, 15);
 
   const char kSize = 100;
   char ymdhms[kSize];
