@@ -19,6 +19,8 @@ GroundStation::GroundStation(const SimulationConfiguration* configuration, const
   number_of_spacecraft_ = configuration->number_of_simulated_spacecraft_;
   for (unsigned int i = 0; i < number_of_spacecraft_; i++) {
     is_visible_[i] = false;
+    range_m_[i] = 0.0;
+    range_rate_m_s_[i] = 0.0;
   }
 }
 
@@ -49,35 +51,66 @@ void GroundStation::Update(const EarthRotation& celestial_rotation, const Spacec
   libra::Matrix<3, 3> dcm_ecef2eci = celestial_rotation.GetDcmJ2000ToEcef().Transpose();
   position_i_m_ = dcm_ecef2eci * position_ecef_m_;
 
-  is_visible_[spacecraft.GetSpacecraftId()] = CalcIsVisible(spacecraft.GetDynamics().GetOrbit().GetPosition_xcxf_m());
+  is_visible_[spacecraft.GetSpacecraftId()] = CalcIsVisible(spacecraft);
+  CalcRaRR(spacecraft);
 }
 
-bool GroundStation::CalcIsVisible(const libra::Vector<3> spacecraft_position_ecef_m) {
+
+bool GroundStation::CalcIsVisible(const Spacecraft& spacecraft) {
   libra::Quaternion q_ecef_to_ltc = geodetic_position_.GetQuaternionXcxfToLtc();
 
-  libra::Vector<3> sc_pos_ltc = q_ecef_to_ltc.FrameConversion(spacecraft_position_ecef_m - position_ecef_m_);  // Satellite position in LTC frame [m]
+  libra::Vector<3> sc_pos_ltc = q_ecef_to_ltc.FrameConversion(spacecraft.GetDynamics().GetOrbit().GetPosition_ecef_m() - position_ecef_m_);  // Satellite position in LTC frame [m]
   sc_pos_ltc = sc_pos_ltc.CalcNormalizedVector();
   libra::Vector<3> dir_gs_to_zenith = libra::Vector<3>(0);
   dir_gs_to_zenith[2] = 1;
 
   // Judge the satellite position angle is over the minimum elevation
 
-  if (dot(sc_pos_ltc, dir_gs_to_zenith) > sin(elevation_limit_angle_deg_ * libra::deg_to_rad)) {
-    return true;
-  } else {
+  if (dot(sc_pos_ltc, dir_gs_to_zenith) < sin(elevation_limit_angle_deg_ * libra::deg_to_rad)) {
     return false;
   }
+
+  std::string center_body_name = spacecraft.GetLocalEnvironment().GetCelestialInformation().GetGlobalInformation().GetCenterBodyName();
+  if (center_body_name == "EARTH")
+    return true;
+
+  // Check the occultation by center of body
+  libra::Vector<3> pos_center_body_eci = - spacecraft.GetLocalEnvironment().GetCelestialInformation().GetGlobalInformation().GetPositionFromCenter_i_m("EARTH");
+  libra::Vector<3> los_gs_to_center_body_i = pos_center_body_eci - position_i_m_;
+  double distance_gs_to_center_body = los_gs_to_center_body_i.CalcNorm();
+  double zenith_edge = asin(spacecraft.GetLocalEnvironment().GetCelestialInformation().GetGlobalInformation().GetMeanRadiusFromName_m(center_body_name.c_str()) / distance_gs_to_center_body);
+  double distance_edge = distance_gs_to_center_body * cos(zenith_edge);
+
+  libra::Vector<3> los_gs_to_sc_i = (spacecraft.GetDynamics().GetOrbit().GetPosition_i_m() + pos_center_body_eci) - position_i_m_;
+  double distance_sc = los_gs_to_sc_i.CalcNorm();
+  double zenith_sc = acos(libra::InnerProduct(los_gs_to_center_body_i, los_gs_to_sc_i) / (distance_edge * distance_sc));
+  if (distance_sc > distance_edge && zenith_sc < zenith_edge)
+    return false;
+
+  return true;
 }
+
+
+void GroundStation::CalcRaRR(const Spacecraft& spacecraft) {
+  libra::Vector<3> rel_sc_position = spacecraft.GetDynamics().GetOrbit().GetPosition_ecef_m() - position_ecef_m_;
+  const unsigned int sc_id = spacecraft.GetSpacecraftId();
+  range_m_.at(sc_id) = (rel_sc_position).CalcNorm();
+  range_rate_m_s_.at(sc_id) = libra::InnerProduct(spacecraft.GetDynamics().GetOrbit().GetVelocity_ecef_m_s(), rel_sc_position.CalcNormalizedVector());
+}
+
 
 std::string GroundStation::GetLogHeader() const {
   std::string str_tmp = "";
 
   std::string head = "ground_station" + std::to_string(ground_station_id_) + "_";
   for (unsigned int i = 0; i < number_of_spacecraft_; i++) {
-    std::string legend = head + "sc" + std::to_string(i) + "_visible_flag";
-    str_tmp += WriteScalar(legend);
+    std::string legend_base = head + "sc" + std::to_string(i);
+    str_tmp += WriteScalar(legend_base + "_visible_flag");
+    str_tmp += WriteScalar(legend_base + "_range", "m");
+    str_tmp += WriteScalar(legend_base + "_range_rate", "m/s");
   }
   str_tmp += WriteVector("ground_station_position", "eci", "m", 3);
+  // str_tmp += WriteVector("ground_station_position", "ecef", "m", 3);
   return str_tmp;
 }
 
@@ -86,7 +119,10 @@ std::string GroundStation::GetLogValue() const {
 
   for (unsigned int i = 0; i < number_of_spacecraft_; i++) {
     str_tmp += WriteScalar(is_visible_.at(i));
+    str_tmp += WriteScalar(range_m_.at(i), 16);
+    str_tmp += WriteScalar(range_rate_m_s_.at(i), 16);
   }
-  str_tmp += WriteVector(position_i_m_);
+  str_tmp += WriteVector(position_i_m_, 16);
+  // str_tmp += WriteVector(position_ecef_m_);
   return str_tmp;
 }

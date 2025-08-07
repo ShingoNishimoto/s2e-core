@@ -12,6 +12,7 @@
 
 #include "../simulation_configuration.hpp"
 
+// FIXME: it assumes the gs is on Earth.
 /**
  * @class GroundStation
  * @brief Base class of ground station
@@ -97,16 +98,24 @@ class GroundStation : public ILoggable {
   Vector<3> position_i_m_{0.0};         //!< Ground Station Position in the inertial frame [m]
   double elevation_limit_angle_deg_;    //!< Minimum elevation angle to work the ground station [deg]
 
-  std::map<int, bool> is_visible_;     //!< Visible flag for each spacecraft ID (not care antenna)
-  unsigned int number_of_spacecraft_;  //!< Number of spacecraft in the simulation
+  std::map<int, double> range_m_;         //!< Geometric range between GS and each spacecraft ID (not care antenna)
+  std::map<int, double> range_rate_m_s_;  //!< Geometric range rate between GS and each spacecraft ID (not care antenna)
+  std::map<int, bool> is_visible_;        //!< Visible flag for each spacecraft ID (not care antenna)
+  unsigned int number_of_spacecraft_;     //!< Number of spacecraft in the simulation
 
   /**
    * @fn CalcIsVisible
    * @brief Calculate the visibility for the target spacecraft
-   * @param [in] spacecraft_position_ecef_m: spacecraft position in ECEF frame [m]
+   * @param [in] spacecraft: spacecraft
    * @return True when the satellite is visible from the ground station
    */
-  bool CalcIsVisible(const Vector<3> spacecraft_position_ecef_m);
+  bool CalcIsVisible(const Spacecraft& spacecraft);
+  /**
+   * @fn CalcIsRaRR
+   * @brief Calculate the range and range rate for the target spacecraft
+   * @param [in] spacecraft: spacecraft
+   */
+  void CalcRaRR(const Spacecraft& spacecraft);
 };
 
 #endif  // S2E_SIMULATION_GROUND_STATION_GROUND_STATION_HPP_

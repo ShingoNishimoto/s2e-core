@@ -95,6 +95,11 @@ class Orbit : public ILoggable {
    */
   inline libra::Vector<3> GetPosition_xcxf_m() const { return spacecraft_position_xcxf_m_; }
   /**
+   * @fn GetPosition_ecef_m
+   * @brief Return spacecraft position in the ECEF frame [m]
+   */
+  inline libra::Vector<3> GetPosition_ecef_m() const { return spacecraft_position_ecef_m_; }
+  /**
    * @fn GetVelocity_i_m_s
    * @brief Return spacecraft velocity in the inertial frame [m/s]
    */
@@ -109,6 +114,11 @@ class Orbit : public ILoggable {
    * @brief Return spacecraft velocity in the XCXF frame [m/s]
    */
   inline libra::Vector<3> GetVelocity_xcxf_m_s() const { return spacecraft_velocity_xcxf_m_s_; }
+  /**
+   * @fn GetVelocity_ecef_m_s
+   * @brief Return spacecraft velocity in the ECEF frame [m/s]
+   */
+  inline libra::Vector<3> GetVelocity_ecef_m_s() const { return spacecraft_velocity_ecef_m_s_; }
   /**
    * @fn GetGeodeticPosition
    * @brief Return spacecraft position in the geodetic frame [m]
