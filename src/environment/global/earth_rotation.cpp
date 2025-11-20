@@ -14,6 +14,7 @@
 #include "library/external/sgp4/sgp4ext.h"   // for jday()
 #include "library/external/sgp4/sgp4unit.h"  // for gstime()
 #include "library/math/constants.hpp"
+#include <SpiceUsr.h>
 
 // Default constructor
 EarthRotation::EarthRotation(const EarthRotationMode rotation_mode) : rotation_mode_(rotation_mode) {
@@ -103,13 +104,16 @@ void EarthRotation::InitializeParameters() {
     c_z_rad_[0] = 2306.218100 * libra::arcsec_to_rad;  // [rad/century]
     c_z_rad_[1] = 1.094680 * libra::arcsec_to_rad;     // [rad/century^2]
     c_z_rad_[2] = 0.018203 * libra::arcsec_to_rad;     // [rad/century^3]
+  } else if (rotation_mode_ == EarthRotationMode::kItrf93) {
+    // No parameters to initialize.
   } else {
     // If the rotation mode is neither Simple nor Full, disable the rotation calculation and make the DCM a unit matrix
     dcm_j2000_to_ecef_ = libra::MakeIdentityMatrix<3>();
   }
 }
 
-void EarthRotation::Update(const double julian_date_from_j2000) {
+void EarthRotation::Update(const SimulationTime& simulation_time) {
+  const double julian_date_from_j2000 = simulation_time.GetCurrentTime_jd_from_j2000();
   gmst_rad_ = gstime(julian_date_from_j2000);  // It is a bit different with 長沢(Nagasawa)'s algorithm. TODO: Check the correctness
 
   if (rotation_mode_ == EarthRotationMode::kFull) {
@@ -149,6 +153,17 @@ void EarthRotation::Update(const double julian_date_from_j2000) {
     // In this case, only Axial Rotation is executed, with its argument replaced from G'A'ST to G'M'ST
     // FIXME: Not suitable when the center body is not the earth
     dcm_j2000_to_ecef_ = AxialRotation(gmst_rad_);
+  } else if (rotation_mode_ == EarthRotationMode::kItrf93) {
+    ConstSpiceChar from[] = "J2000";
+    ConstSpiceChar to[] = "ITRF93";
+    SpiceDouble et = simulation_time.GetCurrentEphemerisTime();
+    SpiceDouble state_transition_matrix[6][6];
+    sxform_c(from, to, et, state_transition_matrix);
+    for (size_t i = 0; i < 3; i++) {
+      for (size_t j = 0; j < 3; j++) {
+        dcm_j2000_to_ecef_[i][j] = state_transition_matrix[i][j];
+      }
+    }
   } else {
     // Leave the DCM as unit Matrix(diag{1,1,1})
     return;
@@ -269,6 +284,8 @@ EarthRotationMode ConvertEarthRotationMode(const std::string mode) {
     rotation_mode = EarthRotationMode::kSimple;
   } else if (mode == "FULL") {
     rotation_mode = EarthRotationMode::kFull;
+  } else if (mode == "ITRF93") {
+    rotation_mode = EarthRotationMode::kItrf93;
   } else  // if rotation_mode is neither Idle, Simple, nor Full, set rotation_mode to Idle
   {
     rotation_mode = EarthRotationMode::kIdle;

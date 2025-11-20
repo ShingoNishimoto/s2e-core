@@ -11,6 +11,7 @@
 
 #include <library/logger/loggable.hpp>
 #include "library/math/matrix.hpp"
+#include "simulation_time.hpp"
 
 /**
  * @enum EarthRotationMode
@@ -20,6 +21,7 @@ enum class EarthRotationMode {
   kIdle,    //!< No Rotation calculation
   kSimple,  //!< Z axis rotation only
   kFull,    //!< Rotation including precession and nutation
+  kItrf93,  //!< ITRF93 frame given by SPICE
 };
 
 /**
@@ -38,9 +40,9 @@ class EarthRotation : public ILoggable {
   /**
    * @fn Update
    * @brief Update rotation
-   * @param [in] julian_date_from_j2000: Julian date from J2000
+   * @param [in] simulation_time: simulation_time
    */
-  void Update(const double julian_date_from_j2000);
+  void Update(const SimulationTime& simulation_time);
 
   /**
    * @fn GetDcmJ2000ToEcef

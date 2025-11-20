@@ -28,6 +28,7 @@ libra::Quaternion Orbit::CalcQuaternion_i2lvlh() const {
   return q_i2lvlh.Normalize();
 }
 
+// FIXME: where is XCXF to inertia?
 // NOTE: Currently Earth and Moon rotation exists.
 void Orbit::TransformIToXcxf(std::string center_body_name) {
   libra::Matrix<3, 3> dcm_i_to_xcxf;
@@ -45,16 +46,19 @@ void Orbit::TransformIToXcxf(std::string center_body_name) {
   }
 
   libra::Vector<3> position_i_m = spacecraft_position_i_m_;
+  libra::Vector<3> velocity_i_m_s = spacecraft_velocity_i_m_s_;
   std::string orbit_center_body_name = celestial_information_->GetCenterBodyName();
   if (orbit_center_body_name != center_body_name) {
     position_i_m += celestial_information_->GetPositionFromSelectedBody_i_m(orbit_center_body_name.c_str(), center_body_name.c_str());
+    velocity_i_m_s += celestial_information_->GetVelocityFromSelectedBody_i_m_s(orbit_center_body_name.c_str(), center_body_name.c_str());
   }
 
   libra::Vector<3> position_xcxf_m = dcm_i_to_xcxf * position_i_m;
 
+  // FIXME: this is not accurate when using SPICE-based Earth rotation.
   // convert velocity vector in Inertial frame to the vector in XCXF
   libra::Vector<3> we_cross_r = OuterProduct(celestial_body_angular_velocity_i_rad_s, position_i_m);
-  libra::Vector<3> velocity_w_cross_r = spacecraft_velocity_i_m_s_ - we_cross_r;
+  libra::Vector<3> velocity_w_cross_r = velocity_i_m_s - we_cross_r;
 
   libra::Vector<3> velocity_xcxf_m_s = dcm_i_to_xcxf * velocity_w_cross_r;
 

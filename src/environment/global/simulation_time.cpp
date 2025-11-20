@@ -42,7 +42,15 @@ SimulationTime::SimulationTime(const double end_sec, const double step_sec, cons
 
   //  sscanf_s(start_ymdhms, "%d/%d/%d %d:%d:%lf", &start_year_, &start_month_, &start_day_, &start_hour_, &start_minute_, &start_sec_);
   sscanf(start_ymdhms, "%d/%d/%d %d:%d:%lf", &start_year_, &start_month_, &start_day_, &start_hour_, &start_minute_, &start_sec_);
-  jday(start_year_, start_month_, start_day_, start_hour_, start_minute_, start_sec_, start_jd_);
+
+  // For spice library
+  utc2et_c(start_ymdhms, &start_ephemeris_time_);
+  start_jd_ = start_ephemeris_time_ / 86400.0 + 2451545.0;
+
+  // FIXME: conversion below is wrong.
+  // jday(start_year_, start_month_, start_day_, start_hour_, start_minute_, start_sec_, start_jd_);
+  // // NOTE: this is civil UTC-based JD, so need to convert to JD_TT to compute astronomical states.
+
   current_jd_ = start_jd_;
   current_jd_from_j2000_ = current_jd_ - kJulianDateJ2000_;
   current_sidereal_ = gstime(current_jd_from_j2000_);
@@ -52,10 +60,10 @@ SimulationTime::SimulationTime(const double end_sec, const double step_sec, cons
   InitializeState();
   SetParameters();
 
-  // Ephemeris time initialize
-  std::ostringstream stream;
-  stream << std::fixed << std::setprecision(11) << "jd " << start_jd_;
-  str2et_c(stream.str().c_str(), &start_ephemeris_time_);
+  // // Ephemeris time initialize
+  // std::ostringstream stream;
+  // stream << std::fixed << std::setprecision(11) << "jd " << start_jd_;
+  // str2et_c(stream.str().c_str(), &start_ephemeris_time_);
 }
 
 SimulationTime::~SimulationTime() {}
@@ -205,7 +213,8 @@ string SimulationTime::GetLogHeader() const {
   string str_tmp = "";
 
   str_tmp += WriteScalar("elapsed_time", "s");
-  // str_tmp += WriteScalar("jd", "date");
+  str_tmp += WriteScalar("jd", "date");
+  str_tmp += WriteScalar("et", "s");
   str_tmp += WriteScalar("time", "UTC");
 
   return str_tmp;
@@ -215,7 +224,8 @@ string SimulationTime::GetLogValue() const {
   string str_tmp = "";
 
   str_tmp += WriteScalar(elapsed_time_sec_);
-  // str_tmp += WriteScalar(current_jd_, 15);
+  str_tmp += WriteScalar(current_jd_, 15);
+  str_tmp += WriteScalar(GetCurrentEphemerisTime(), 15);
 
   const char kSize = 100;
   char ymdhms[kSize];

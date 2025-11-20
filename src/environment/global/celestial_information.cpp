@@ -126,7 +126,7 @@ void CelestialInformation::UpdateAllObjectsInformation(const SimulationTime& sim
   }
 
   // Update earth rotation
-  earth_rotation_->Update(simulation_time.GetCurrentTime_jd_from_j2000());
+  earth_rotation_->Update(simulation_time);
   // Update moon rotation
   moon_rotation_->Update(simulation_time);
 }
@@ -214,7 +214,7 @@ CelestialInformation* InitCelestialInformation(std::string file_name) {
   std::string center_obj = ini_file.ReadString(section, "center_object");
 
   // SPICE Furnsh
-  std::vector<std::string> keywords = {"tls", "tpc1", "tpc2", "tpc3", "bsp"};
+  std::vector<std::string> keywords = {"tls", "tpc1", "tpc2", "tpc3", "bsp", "bpc"};
   for (size_t i = 0; i < keywords.size(); i++) {
     std::string fname = ini_file.ReadString(furnsh_section, keywords[i].c_str());
     furnsh_c(fname.c_str());
