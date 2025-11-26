@@ -83,7 +83,13 @@ bool GroundStation::CalcIsVisible(const Spacecraft& spacecraft) {
 
   libra::Vector<3> los_gs_to_sc_i = (spacecraft.GetDynamics().GetOrbit().GetPosition_i_m() + pos_center_body_eci) - position_i_m_;
   double distance_sc = los_gs_to_sc_i.CalcNorm();
-  double zenith_sc = acos(libra::InnerProduct(los_gs_to_center_body_i, los_gs_to_sc_i) / (distance_edge * distance_sc));
+  los_gs_to_center_body_i = los_gs_to_center_body_i.CalcNormalizedVector();
+  los_gs_to_sc_i = los_gs_to_sc_i.CalcNormalizedVector();
+  double dot_sc_center_body = libra::InnerProduct(los_gs_to_center_body_i, los_gs_to_sc_i);
+  // Clip
+  if (fabs(dot_sc_center_body) > 1)
+    dot_sc_center_body /= fabs(dot_sc_center_body);
+  double zenith_sc = acos(dot_sc_center_body);
   if (distance_sc > distance_edge && zenith_sc < zenith_edge)
     return false;
 
@@ -94,7 +100,9 @@ bool GroundStation::CalcIsVisible(const Spacecraft& spacecraft) {
 void GroundStation::CalcRaRR(const Spacecraft& spacecraft) {
   libra::Vector<3> rel_sc_position = spacecraft.GetDynamics().GetOrbit().GetPosition_ecef_m() - position_ecef_m_;
   const unsigned int sc_id = spacecraft.GetSpacecraftId();
+  // Instantaneous geometric distance
   range_m_.at(sc_id) = (rel_sc_position).CalcNorm();
+  // Instantaneous geometric range-rate NOTE: no need to consider inertial correction, since it cancel out.
   range_rate_m_s_.at(sc_id) = libra::InnerProduct(spacecraft.GetDynamics().GetOrbit().GetVelocity_ecef_m_s(), rel_sc_position.CalcNormalizedVector());
 }
 
