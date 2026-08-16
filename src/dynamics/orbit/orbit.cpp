@@ -62,13 +62,12 @@ void Orbit::TransformIToXcxf(std::string center_body_name) {
 
   libra::Vector<3> velocity_xcxf_m_s = dcm_i_to_xcxf * velocity_w_cross_r;
 
+  spacecraft_position_xcxf_m_ = position_xcxf_m;
+  spacecraft_velocity_xcxf_m_s_= velocity_xcxf_m_s;
+
   if (center_body_name == "EARTH") {
     spacecraft_position_ecef_m_ = position_xcxf_m;
     spacecraft_velocity_ecef_m_s_ = velocity_xcxf_m_s;
-  }
-  else {
-    spacecraft_position_xcxf_m_ = position_xcxf_m;
-    spacecraft_velocity_xcxf_m_s_= velocity_xcxf_m_s;
   }
 }
 

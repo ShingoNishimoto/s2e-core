@@ -46,3 +46,39 @@ libra::Matrix<3, 3> CalcDcmMeanEarthToPrincipalAxis() {
 
   return dcm_me_pa;
 }
+
+libra::Matrix<6, 6> CalcDcmMciToMoonEarthSynodic(const libra::Vector<3> earth_position_mci_m, const libra::Vector<3> earth_velocity_mci_m_s) {
+  libra::Vector<3> x_hat = earth_position_mci_m.CalcNormalizedVector();
+  libra::Vector<3> z_hat = (libra::OuterProduct(earth_position_mci_m, earth_velocity_mci_m_s)).CalcNormalizedVector();
+  libra::Vector<3> y_hat = libra::OuterProduct(z_hat, x_hat);
+
+  libra::Matrix<3, 3> C;
+  for (uint8_t i = 0; i < 3; i++) {
+    C(0, i) = x_hat(i);
+    C(1, i) = y_hat(i);
+    C(2, i) = z_hat(i);
+  }
+
+  // Angular velocity
+  libra::Vector<3> omega = 1.0 / libra::InnerProduct(earth_position_mci_m, earth_position_mci_m) * libra::OuterProduct(earth_position_mci_m, earth_velocity_mci_m_s);
+
+  // Skew matrix
+  libra::Matrix<3, 3> OmegaX;
+  OmegaX(0, 0) = 0;         OmegaX(0, 1) = -omega(2); OmegaX(0, 2) = omega(1);
+  OmegaX(1, 0) = omega(2);  OmegaX(1, 1) = 0;         OmegaX(1, 2) = -omega(0);
+  OmegaX(2, 0) = -omega(1); OmegaX(2, 1) = omega(0);  OmegaX(2, 2) = 0;
+
+  // 6x6 state transition matrix
+  libra::Matrix<6, 6> T;
+  T.FillUp(0);
+  libra::Matrix<3, 3> C_OmegaX = C * OmegaX;
+  for (uint8_t i = 0; i < 3; i++) {
+    for (uint8_t j = 0; j < 3; j++) {
+      T(i, j) = C(i, j);
+      T(3 + i, 3 + j) = C(i, j);
+      T(3 + i, j) = -C_OmegaX(i, j);
+    }
+  }
+
+  return T;
+}

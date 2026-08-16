@@ -11,6 +11,7 @@
 #include "relative_orbit.hpp"
 #include "rk4_orbit_propagation.hpp"
 #include "sgp4_orbit_propagation.hpp"
+#include "../../library/planet_rotation/moon_rotation_utilities.hpp"
 
 Orbit* InitOrbit(const CelestialInformation* celestial_information, std::string initialize_file, double step_width_s, double current_time_jd,
                  double gravity_constant_m3_s2, std::string section, RelativeInformation* relative_information) {
@@ -28,7 +29,7 @@ Orbit* InitOrbit(const CelestialInformation* celestial_information, std::string 
     // initialize RK4 orbit propagator
     libra::Vector<3> position_i_m;
     libra::Vector<3> velocity_i_m_s;
-    libra::Vector<6> pos_vel = InitializePosVel(initialize_file, current_time_jd, gravity_constant_m3_s2);
+    libra::Vector<6> pos_vel = InitializePosVel(celestial_information, initialize_file, current_time_jd, gravity_constant_m3_s2);
     for (size_t i = 0; i < 3; i++) {
       position_i_m[i] = pos_vel[i];
       velocity_i_m_s[i] = pos_vel[i + 3];
@@ -87,7 +88,7 @@ Orbit* InitOrbit(const CelestialInformation* celestial_information, std::string 
     // initialize orbit for Encke's method
     libra::Vector<3> position_i_m;
     libra::Vector<3> velocity_i_m_s;
-    libra::Vector<6> pos_vel = InitializePosVel(initialize_file, current_time_jd, gravity_constant_m3_s2);
+    libra::Vector<6> pos_vel = InitializePosVel(celestial_information, initialize_file, current_time_jd, gravity_constant_m3_s2);
     for (size_t i = 0; i < 3; i++) {
       position_i_m[i] = pos_vel[i];
       velocity_i_m_s[i] = pos_vel[i + 3];
@@ -102,7 +103,7 @@ Orbit* InitOrbit(const CelestialInformation* celestial_information, std::string 
 
     libra::Vector<3> position_i_m;
     libra::Vector<3> velocity_i_m_s;
-    libra::Vector<6> pos_vel = InitializePosVel(initialize_file, current_time_jd, gravity_constant_m3_s2);
+    libra::Vector<6> pos_vel = InitializePosVel(celestial_information, initialize_file, current_time_jd, gravity_constant_m3_s2);
     for (size_t i = 0; i < 3; i++) {
       position_i_m[i] = pos_vel[i];
       velocity_i_m_s[i] = pos_vel[i + 3];
@@ -115,7 +116,7 @@ Orbit* InitOrbit(const CelestialInformation* celestial_information, std::string 
   return orbit;
 }
 
-libra::Vector<6> InitializePosVel(std::string initialize_file, double current_time_jd, double gravity_constant_m3_s2, std::string section) {
+libra::Vector<6> InitializePosVel(const CelestialInformation* celestial_information, std::string initialize_file, double current_time_jd, double gravity_constant_m3_s2, std::string section) {
   auto conf = IniAccess(initialize_file);
   const char* section_ = section.c_str();
   libra::Vector<3> position_i_m;
@@ -123,6 +124,7 @@ libra::Vector<6> InitializePosVel(std::string initialize_file, double current_ti
   libra::Vector<6> pos_vel;
 
   OrbitInitializeMode initialize_mode = SetOrbitInitializeMode(conf.ReadString(section_, "initialize_mode"));
+  // FIXME: this limits the input orbital element in only inertial frame
   if (initialize_mode == OrbitInitializeMode::kOrbitalElements) {
     double semi_major_axis_m = conf.ReadDouble(section_, "semi_major_axis_m");
     double eccentricity = conf.ReadDouble(section_, "eccentricity");
@@ -136,6 +138,24 @@ libra::Vector<6> InitializePosVel(std::string initialize_file, double current_ti
     kepler_orbit.CalcOrbit(current_time_jd);
     position_i_m = kepler_orbit.GetPosition_i_m();
     velocity_i_m_s = kepler_orbit.GetVelocity_i_m_s();
+
+    if (conf.ReadString(section_, "coordinate_system") == "MOON-EARTH_SYNODIC_FRAME") {
+      libra::Vector<3> earth_pos_mci_m = celestial_information->GetPositionFromCenter_i_m("EARTH");
+      libra::Vector<3> earth_vel_mci_m_s = celestial_information->GetVelocityFromCenter_i_m_s("EARTH");
+      libra::Matrix<6, 6> dcm_me_synodic_to_mci = libra::CalcInverseMatrix(CalcDcmMciToMoonEarthSynodic(earth_pos_mci_m, earth_vel_mci_m_s));
+      // Store in the 6 row vector
+      libra::Vector<6> states_me_synodic;
+      for (uint8_t i = 0; i < 3; i++) {
+        states_me_synodic(i) = position_i_m(i);
+        states_me_synodic(3 + i) = velocity_i_m_s(i);
+      }
+      // Convert to MCI
+      libra::Vector<6> states_mci = dcm_me_synodic_to_mci * states_me_synodic;
+      for (uint8_t i = 0; i < 3; i++) {
+        position_i_m(i) = states_mci(i);
+        velocity_i_m_s(i) = states_mci(3 + i);
+      }
+    }
   } else {
     conf.ReadVector<3>(section_, "initial_position_i_m", position_i_m);
     conf.ReadVector<3>(section_, "initial_velocity_i_m_s", velocity_i_m_s);

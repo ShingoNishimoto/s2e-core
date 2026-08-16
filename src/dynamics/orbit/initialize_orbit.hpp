@@ -30,11 +30,12 @@ Orbit* InitOrbit(const CelestialInformation* celestial_information, std::string 
 /**
  * @fn InitializePosVel
  * @brief Initialize position and velocity depends on initialize mode
+ * @param [in] celestial_information: Celestial information
  * @param [in] initialize_file: Path to initialize file
  * @param [in] current_time_jd: Current Julian day [day]
  * @param [in] gravity_constant_m3_s2: Gravity constant [m3/s2]
  * @param [in] section: Section name
  */
-libra::Vector<6> InitializePosVel(std::string initialize_file, double current_time_jd, double gravity_constant_m3_s2, std::string section = "ORBIT");
+libra::Vector<6> InitializePosVel(const CelestialInformation* celestial_information, std::string initialize_file, double current_time_jd, double gravity_constant_m3_s2, std::string section = "ORBIT");
 
 #endif  // S2E_DYNAMICS_ORBIT_INITIALIZE_ORBIT_HPP_

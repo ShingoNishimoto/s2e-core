@@ -34,4 +34,12 @@ libra::Matrix<3, 3> CalcDcmEciToMeanEarth(const libra::Vector<3> moon_position_e
  */
 libra::Matrix<3, 3> CalcDcmMeanEarthToPrincipalAxis();
 
+/**
+ * @fn CalcDcmMciToMoonEarthSynodic
+ * @brief Calculate DCM from MCI to Moon-Earth synodic frame (rotating)
+ * @param[in] earth_position_mci_m: Earth position vector @ MCI frame [m]
+ * @param[in] earth_velocity_mci_m_s: Earth velocity vector @ MCI frame [m/s]
+ */
+libra::Matrix<6, 6> CalcDcmMciToMoonEarthSynodic(const libra::Vector<3> earth_position_mci_m, const libra::Vector<3> earth_velocity_mci_m_s);
+
 #endif  // S2E_LIBRARY_PLANET_ROTATION_MOON_MEAN_EARTH_PRINCIPAL_AXIS_FRAME_HPP_

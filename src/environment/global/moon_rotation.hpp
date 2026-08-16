@@ -17,6 +17,7 @@ class CelestialInformation;
  * @enum MoonRotationMode
  * @brief Definition of calculation mode of moon rotation
  */
+// FIXME: add MOON_PA, MOON_ME, since IAU_MOON is not accurate.
 enum class MoonRotationMode {
   kIdle,     //!< No rotation
   kSimple,   //!< Mean Earth and Principal Axis calculation
